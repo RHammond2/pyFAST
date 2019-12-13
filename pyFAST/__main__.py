@@ -114,7 +114,6 @@ def main():
         action="store_true",
         help="Doesn't run the actual test case(s). The data should already exist.",
     )
-
     parser.add_argument(
         "--norm",
         dest="norm_list",
