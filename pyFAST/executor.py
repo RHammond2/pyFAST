@@ -219,10 +219,10 @@ class Executor:
         self.module = os.path.join(self.rtest, "glue-codes", "openfast")
 
         for exe in executable:
-            # split exe to be final part of path
-            if exe.endswith("openfast"):  # windows is __.exe
+            exe = os.path.basename(os.path.normpath(exe))
+            if "openfast" in exe:
                 self.of_executable = Path(exe)
-            elif exe.endswith("beamdyn_driver"):
+            elif "beamdyn_driver" in exe:
                 self.bd_executable = Path(exe)
 
         self._validate_inputs()
