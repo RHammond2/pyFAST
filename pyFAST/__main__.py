@@ -166,7 +166,7 @@ def main():
 
     # Create the case summary for each case
     plots = reg_test.retrieve_plot_html(
-        cases, baseline_data, test_data, attributes, pass_fail_list
+        baseline_data, test_data, attributes, pass_fail_list
     )
     reg_test.create_results_summary(cases, attributes, norm_res, norm_list, plots)
 

@@ -91,7 +91,10 @@ def _get_regression_out_files(case: str, out_dir: str, baseline_dir: str):
     baseline = os.path.join(baseline_dir, case_file)
 
     for f in (local, baseline):
-        validate_file(f)  # try except return None, None
+        try:
+            validate_file(f)
+        except FileExistsError as error:
+            return None, None, error
 
     return local, baseline
 
@@ -115,7 +118,10 @@ def _get_beamdyn_out_files(case: str, out_dir: str, baseline_dir: str):
     baseline = os.path.join(baseline_dir, "bd_driver.out")
 
     for f in (local, baseline):
-        validate_file(f)  # same as above
+        try:
+            validate_file(f)
+        except FileExistsError as error:
+            return None, None, error
 
     return local, baseline
 
@@ -423,14 +429,15 @@ class Executor:
         case_list = []
         test_list = []
         baseline_list = []
+        error_list = []
         for ix, case, out_dir, target in zip(
             self.ix, self.case, self.test_build, self.outputs
         ):
             # Process the files
             _func = self.FUNC_MAP[CASE_MAP[case]]
-            local, baseline, *error = _func(
-                case, out_dir, target
-            )  # return some other error message to print at the end for a failure
+            local, baseline, *error = _func(case, out_dir, target)
+
+            error_list.append((case, error))
 
             # Check for linear case
             if local is None and baseline is None:
@@ -445,6 +452,14 @@ class Executor:
 
             baseline_data, baseline_info, _ = load_output(baseline)
             baseline_list.append((baseline_data, baseline_info))
+
+        error_list = [(error[0], error[1][0]) for error in error_list if error[1]]
+        if error_list:
+            print("\n\x1b[1;31mErrors:\x1b[0m")
+            for case, e in error_list:
+                case = f"\x1b[1;31m{case}\x1b[0m"
+                print(f"  {case}: {e}")
+            print("")
 
         return ix_list, case_list, baseline_list, test_list
 
