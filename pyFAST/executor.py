@@ -219,10 +219,10 @@ class Executor:
         self.module = os.path.join(self.rtest, "glue-codes", "openfast")
 
         for exe in executable:
-            exe = os.path.basename(os.path.normpath(exe))
-            if "openfast" in exe:
+            _exe = os.path.basename(os.path.normpath(exe))
+            if "openfast" in _exe:
                 self.of_executable = Path(exe)
-            elif "beamdyn_driver" in exe:
+            elif "beamdyn_driver" in _exe:
                 self.bd_executable = Path(exe)
 
         self._validate_inputs()
@@ -475,7 +475,7 @@ class Executor:
             "l2_norm",
             "relative_l2_norm",
         ],
-        test_norm_condition: List[str] = ["relative_l2_norm"],  # flag in __main__.py
+        test_norm_condition: List[str] = ["relative_l2_norm"],
     ) -> Tuple[List[np.ndarray], List[bool], List[str]]:
         """
         Computes the norms for each of the valid test cases.
@@ -509,6 +509,14 @@ class Executor:
         norm_list : List[str]
             `norm_list`.
         """
+
+        # Test to make sure that the test norm is included in the computed norms
+        if not set(test_norm_condition).issubset(norm_list):
+            message = (
+                f"test_norm_condition: {test_norm_condition} should be contained in "
+                f"norm_list: {norm_list}."
+            )
+            raise ValueError(message)
 
         norm_results = []
         arguments = [[b[0], t[0]] for b, t in zip(baseline_list, test_list)]

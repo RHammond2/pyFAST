@@ -119,8 +119,17 @@ def main():
         dest="norm_list",
         type=str,
         nargs="+",
+        default=["max_norm", "max_norm_over_range", "l2_norm", "relative_l2_norm"],
         choices=["max_norm", "max_norm_over_range", "l2_norm", "relative_l2_norm"],
         help="The norm(s) to be computed.",
+    )
+    parser.add_argument(
+        "--test-norm",
+        dest="test_norm",
+        nargs="+",
+        default=["relative_l2_norm"],
+        choices=["max_norm", "max_norm_over_range", "l2_norm", "relative_l2_norm"],
+        help="Norm(s) used to determine if the test(s) pass. Must be a normed passed to `-norm`.",
     )
 
     # Parse the arguments, find the cases to be run, and initialize the openFAST
@@ -154,7 +163,14 @@ def main():
     ix, cases, baseline, test = reg_test.read_out_files()
 
     # Run the regression test
-    norm_res, pass_fail_list, norm_list = reg_test.test_norm(ix, cases, baseline, test)
+    norm_res, pass_fail_list, norm_list = reg_test.test_norm(
+        ix,
+        cases,
+        baseline,
+        test,
+        norm_list=args.norm_list,
+        test_norm_condition=args.test_norm,
+    )
 
     # Extract the attributes metadata and the data
     attributes = [
