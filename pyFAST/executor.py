@@ -2,7 +2,6 @@
 
 
 import os
-import sys
 import shutil
 import platform
 from typing import List, Tuple
@@ -138,7 +137,7 @@ class Executor:
         self,
         case: List[str],
         executable: List[str],
-        source: str,  # project_root or something
+        openfast_root: str,
         compiler: str,
         system: str = None,
         tolerance: float = 1e-5,
@@ -160,7 +159,7 @@ class Executor:
         executable : List[str]
             Path(s) to the OpenFAST executable(s). Should be no more than
             length 2 with one exe being for OpenFAST and the other for beamdyn.
-        source : str
+        openfast_root : str
             Path to OpenFAST repository.
         compiler : str
             System compiler id. Should be one of "intel" or "gnu".
@@ -200,8 +199,8 @@ class Executor:
         self.compiler = compiler
         self.output_type = "-".join((system, self.compiler.lower()))
 
-        self.source = Path(source)
-        self.build = os.path.join(self.source, "build")
+        self.root = Path(openfast_root)
+        self.build = os.path.join(self.root, "build")
 
         self.verbose = verbose
         self.execution = execution
@@ -210,7 +209,7 @@ class Executor:
         self.plot_path = plot_path
         self.jobs = jobs if jobs != 0 else -1
 
-        self.rtest = os.path.join(self.source, "reg_tests", "r-test")
+        self.rtest = os.path.join(self.root, "reg_tests", "r-test")
         self.module = os.path.join(self.rtest, "glue-codes", "openfast")
 
         for exe in executable:
@@ -230,9 +229,9 @@ class Executor:
             self.output_type = "macos-gnu"
             print(f"Defaulting to {self.output_type} for output type")
 
-        if self.bd_executable != self.source:
+        if self.bd_executable != self.root:
             validate_executable(self.bd_executable)
-        if self.of_executable != self.source:
+        if self.of_executable != self.root:
             validate_executable(self.of_executable)
 
         validate_directory(self.build)
@@ -527,7 +526,6 @@ class Executor:
     # parallelize this!
     def retrieve_plot_html(
         self,
-        cases: List[str],
         baseline: List[np.ndarray],
         test: List[np.ndarray],
         attributes: List[List[Tuple[str, str]]],
@@ -537,8 +535,6 @@ class Executor:
 
         Parameters
         ----------
-        cases : List[str]
-            List of case names.
         baseline_data : List[np.ndarray]
             Baseline data for each case.
         test_data : List[np.ndarray]

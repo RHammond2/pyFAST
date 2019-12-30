@@ -61,8 +61,8 @@ def main():
         help="Operating system to use for baseline results.",
     )
     parser.add_argument(
-        "-s",
-        dest="source",
+        "--openfast-root",
+        dest="openfast_root",
         type=str,
         required=True,
         help="Path to the OpenFAST repository",
@@ -137,7 +137,7 @@ def main():
     reg_test = Executor(
         cases,
         args.executable,
-        args.source,
+        args.openfast_root,
         args.compiler,
         system=args.system,
         tolerance=args.tolerance,
