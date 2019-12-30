@@ -546,7 +546,37 @@ class Executor:
 
         return norm_results, pass_fail_list, norm_list
 
-    # parallelize this!
+    def plot_single_case(
+        self,
+        baseline: np.ndarray,
+        test: np.ndarray,
+        attributes: List[Tuple[str, str]],
+        passing: bool,
+    ):
+        """Plots a single case's error results.
+
+        Parameters
+        ----------
+        baseline : np.ndarray
+            Baseline data.
+        test : np.ndarray
+            Test data produced locally.
+        attributes : List[Tuple[str, str]]
+            List of tuples of attribute names and units.
+        passing : bool
+            Indicator if the test passed.
+
+        Returns
+        -------
+        List[Tuple[str, str, str]]
+            Returns the plotting information required for case summaries. Specifically,
+            the script, div, and attribute name are provided back for a case.
+        """
+
+        if self.plot == 2 or (self.plot == 1 and not passing):
+            return plot_error(baseline, test, attributes)
+        return []
+
     def retrieve_plot_html(
         self,
         baseline: List[np.ndarray],
@@ -578,12 +608,10 @@ class Executor:
         if self.plot == 0:
             return [[] for _ in pass_fail]
 
-        plots = []
-        for _pass, b, t, a in zip(pass_fail, baseline, test, attributes):
-            if self.plot == 2 or (self.plot == 1 and not _pass):
-                plots.append(plot_error(b, t, a))
-            else:
-                plots.append([])
+        arguments = zip(baseline, test, attributes, pass_fail)
+        with Pool(self.jobs) as pool:
+            plots = list(pool.starmap(self.plot_single_case, arguments))
+
         return plots
 
     def create_results_summary(
